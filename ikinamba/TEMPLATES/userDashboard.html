@@ -1,0 +1,70 @@
+{%load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard</title>
+    <link href="{% static 'bootstrap-5.3.3-dist/css/bootstrap.min.css' %}" rel="stylesheet">
+    <style>
+        body {
+            display: flex;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f4f7f6;
+        }
+        .sidebar {
+            background-color: #1f4e5f;
+            color: white;
+            width: 250px;
+            height: 100vh;
+            padding-top: 20px;
+            position: sticky;
+            top: 0;
+        }
+        .sidebar a {
+            display: block;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            font-size: 18px;
+            border-bottom: 1px solid #3a5c63;
+        }
+        .sidebar a:hover {
+            background-color: #3a5c63;
+        }
+        .content {
+            flex-grow: 1;
+            padding: 20px;
+        }
+        .dashboard-container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <a href="#" id="dashboard-link">Dashboard</a>
+        <a href="#" id="profile-link">Profile</a>
+        <a href="#" id="bookings-link">Bookings</a>
+        <a href="#" id="notifications-link">Notifications</a>
+        <a href="#" id="support-link">Support</a>
+        <a href="#" id="settings-link">Settings</a>
+        <a href="{% url 'logout' %}" class="btn btn-danger" id="logout-link" >Log Out</a>
+    </div>
+
+    <div class="content">
+        <div class="dashboard-container">
+            <h2 class="text-center">IKINAMBA - DASHBOARD</h2>
+            <!-- The rest of your dashboard content goes here -->
+        </div>
+    </div>
+
+    <script src="{% static 'bootstrap-5.3.3-dist/js/bootstrap.bundle.js' %}"></script>
+
+
+</body>
+</html>

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car List</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .container {
+            margin-top: 50px;
+        }
+        .table th {
+            background-color: #007bff;
+            color: white;
+            text-align: center;
+        }
+        .btn-sm {
+            width: 60px;
+        }
+        h4 {
+            color: black;
+        }
+        a {
+            color: #338888;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4>Car List | <a href="{% url 'cars' %}">Return to Cars</a></h4>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover shadow-sm">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Name</th>
+                        <th>Model</th>
+                        <th>Manufacturer</th>
+                        <th>Size</th>
+                        <th>Car Type</th>
+                        <th>Body Type</th>
+                        <th>Price</th>
+                        <th>Created At</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="carList">
+                    <!-- Data rows will be dynamically inserted here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editModalLabel">Edit Ikinamba</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editForm">
+                        <input type="hidden" id="editId">
+                        <div class="mb-3">
+                            <label for="editName" class="form-label">Name</label>
+                            <input type="text" class="form-control" id="editName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editModel" class="form-label">Model</label>
+                            <input type="text" class="form-control" id="editModel" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editManufacturer" class="form-label">Manufacturer</label>
+                            <input type="text" class="form-control" id="editManufacturer" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editSize" class="form-label">Size</label>
+                            <input type="text" class="form-control" id="editSize" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editCarType" class="form-label">Car Type</label>
+                            <input type="text" class="form-control" id="editCarType" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editBodyType" class="form-label">Body Type</label>
+                            <input type="text" class="form-control" id="editBodyType" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editWashPrice" class="form-label">Wash Price</label>
+                            <input type="text" class="form-control" id="editWashPrice" required>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle (includes Popper) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Function to get CSRF token from cookies
+        function getCSRFToken() {
+            const name = 'csrftoken=';
+            const decodedCookie = decodeURIComponent(document.cookie);
+            const cookies = decodedCookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                let c = cookies[i].trim();
+                if (c.indexOf(name) === 0) {
+                    return c.substring(name.length, c.length);
+                }
+            }
+            return '';
+        }
+
+        const csrfToken = getCSRFToken();
+
+        // Function to fetch ikinamba data from the API
+        async function fetchCar() {
+            try {
+                const response = await fetch('http://127.0.0.1:8000/CarAPI');
+                const data = await response.json();
+                displayCar(data);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        }
+
+        // Function to display the data in a table
+        function displayCar(Cars) {
+            const listContainer = document.getElementById('carList');
+            listContainer.innerHTML = ''; // Clear existing content
+
+            if (Cars.length === 0) {
+                listContainer.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center text-muted">No Car records found.</td>
+                    </tr>
+                `;
+                return;
+            }
+
+            Cars.forEach((item, index) => {
+                const row = `
+                    <tr>
+                        <td class="text-center">${index + 1}</td>
+                        <td>${item.name || 'N/A'}</td>
+                        <td>${item.model || 'N/A'}</td>
+                        <td>${item.manufacturer || 'N/A'}</td>
+                        <td>${item.size || 'N/A'}</td>
+                        <td>${item.car_type || 'N/A'}</td>
+                        <td>${item.body_type || 'N/A'}</td>
+                        <td>${item.wash_price || 'N/A'}</td>
+                        <td>${item.created_at || 'N/A'}</td>
+                        <td class="text-center">
+                            <button class="btn btn-outline-primary btn-sm me-2" onclick="openEditModal(${item.id}, '${item.name}', '${item.model}', '${item.manufacturer}', '${item.size}','${item.car_type}','${item.body_type}','${item.wash_price}','${item.created_at}')">Edit</button>
+                            <button class="btn btn-outline-danger btn-sm" onclick="deleteCar(${item.id})">Delete</button>
+                        </td>
+                    </tr>
+                `;
+                listContainer.innerHTML += row;
+            });
+        }
+
+        // Open the edit modal and populate it with the existing data
+        function openEditModal(id, name, model, manufacturer, size, car_type, body_type, wash_price) {
+            document.getElementById('editId').value = id;
+            document.getElementById('editName').value = name;
+            document.getElementById('editModel').value = model;
+            document.getElementById('editManufacturer').value = manufacturer;
+            document.getElementById('editSize').value = size;
+            document.getElementById('editCarType').value = car_type;
+            document.getElementById('editBodyType').value = body_type;
+            document.getElementById('editWashPrice').value = wash_price;
+            new bootstrap.Modal(document.getElementById('editModal')).show();
+        }
+
+        // Handle form submission to edit data
+        document.getElementById('editForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const id = document.getElementById('editId').value;
+            const updatedData = {
+                name: document.getElementById('editName').value,
+                model: document.getElementById('editModel').value,
+                manufacturer: document.getElementById('editManufacturer').value,
+                size: document.getElementById('editSize').value,
+                car_type: document.getElementById('editCarType').value,
+                body_type: document.getElementById('editBodyType').value,
+                wash_price: document.getElementById('editWashPrice').value,
+
+            };
+
+            try {
+                await fetch(`http://127.0.0.1:8000/CarAPI/${id}/`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken,
+                    },
+                    body: JSON.stringify(updatedData),
+                });
+                fetchCar();
+                bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
+            } catch (error) {
+                console.error('Error updating record:', error);
+            }
+        });
+
+        // Delete a record
+        async function deleteCar(id) {
+            if (confirm('Are you sure you want to delete this record?')) {
+                try {
+                    await fetch(`http://127.0.0.1:8000/CarAPI/${id}/`, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRFToken': csrfToken,
+                        },
+                    });
+                    fetchCar();
+                } catch (error) {
+                    console.error('Error deleting record:', error);
+                }
+            }
+        }
+
+        // Fetch data when the page loads
+        window.onload = fetchCar;
+    </script>
+</body>
+</html>
